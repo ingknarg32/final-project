@@ -4,6 +4,7 @@ from flask_pymongo import PyMongo
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+from flask_swagger_ui import get_swaggerui_blueprint
 import os
 import requests
 from models import init_mongo, User, Article
@@ -23,7 +24,7 @@ jwt = JWTManager(app)
 
 # Configuración de Swagger UI
 SWAGGER_URL = '/api/docs'
-API_URL = '/api/swagger.json'
+API_URL = '/static/swagger.json'
 swaggerui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
@@ -33,10 +34,7 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 )
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
-# Descargar recursos necesarios de NLTK
-nltk.download('punkt')
-nltk.download('wordnet')
-nltk.download('stopwords')
+
 
 # Función para procesar texto
 def process_text(text):

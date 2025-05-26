@@ -1,0 +1,129 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Sistema de Gestión de Contenidos API",
+    "description": "API para el sistema de gestión de contenidos",
+    "version": "1.0.0"
+  },
+  "basePath": "/api",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Autenticación"],
+        "summary": "Registrar un nuevo usuario",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {"type": "string"},
+                "password": {"type": "string"},
+                "email": {"type": "string"}
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {"description": "Usuario registrado exitosamente"},
+          "400": {"description": "Datos inválidos"}
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Autenticación"],
+        "summary": "Iniciar sesión",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {"type": "string"},
+                "password": {"type": "string"}
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {"description": "Login exitoso"},
+          "401": {"description": "Credenciales inválidas"}
+        }
+      }
+    },
+    "/articles": {
+      "get": {
+        "tags": ["Artículos"],
+        "summary": "Obtener todos los artículos",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {"description": "Lista de artículos"},
+          "401": {"description": "No autorizado"}
+        }
+      },
+      "post": {
+        "tags": ["Artículos"],
+        "summary": "Agregar un nuevo artículo",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {"type": "string"},
+                "content": {"type": "string"}
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {"description": "Artículo agregado exitosamente"},
+          "401": {"description": "No autorizado"}
+        }
+      }
+    },
+    "/recommendations": {
+      "post": {
+        "tags": ["Recomendaciones"],
+        "summary": "Obtener recomendaciones basadas en preferencias",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "user_preferences": {"type": "string"}
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {"description": "Lista de recomendaciones"},
+          "401": {"description": "No autorizado"}
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  }
+}
