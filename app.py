@@ -11,7 +11,7 @@ from models import init_mongo, User, Article, mongo
 
 # Configuración inicial
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app, resources={r"/api/*": {"origins": ["*"], "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"], "allow_headers": ["Content-Type", "Authorization", "Accept"]}})
 load_dotenv()
 
 # Configuración de MongoDB
