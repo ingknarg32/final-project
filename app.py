@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from flask_swagger_ui import get_swaggerui_blueprint
 import os
 import requests
-from models import init_mongo, User, Article
+from models import init_mongo, User, Article, mongo
 
 # Configuración inicial
 app = Flask(__name__)
@@ -94,7 +94,7 @@ def create_test_user():
 @app.route('/api/articles', methods=['GET'])
 @jwt_required()
 def get_articles():
-    articles = list(articles_collection.find({}, {'_id': 0}))
+    articles = list(mongo.db.articles.find({}, {'_id': 0}))
     return jsonify(articles)
 
 @app.route('/api/articles', methods=['POST'])
