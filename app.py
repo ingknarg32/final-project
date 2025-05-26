@@ -6,8 +6,6 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
 import requests
-import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
 from models import init_mongo, User, Article
 
 # Configuración inicial
