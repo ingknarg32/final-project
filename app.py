@@ -35,7 +35,9 @@ swaggerui_blueprint = get_swaggerui_blueprint(
         'supportedSubmitMethods': ['get', 'post', 'put', 'delete', 'options'],
         'displayRequestDuration': True,
         'docExpansion': 'list',
-        'persistAuthorization': True
+        'persistAuthorization': True,
+        'showRequestHeaders': True,
+        'showCommonExtensions': True
     }
 )
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
