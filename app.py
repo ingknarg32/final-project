@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_pymongo import PyMongo
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from flask_swagger_ui import get_swaggerui_blueprint
-from datetime import datetime, timedelta
-import os
 from dotenv import load_dotenv
+import os
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import requests
 import nltk
