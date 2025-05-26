@@ -97,7 +97,7 @@ final-project/
 
 La documentación de la API está disponible en:
 
-http://localhost:5000/api/docs
+https://final-project-backend-463v.onrender.com/api/docs
 
 ## 📈 Despliegue
 
@@ -130,9 +130,8 @@ El proyecto incluye pruebas unitarias y de integración.
 
 ## Despliegue
 
-El proyecto está listo para desplegarse en plataformas como:
-- Vercel (Frontend)
-- Railway (Backend)
+El proyecto está desplegado en:
+- Render (Backend): https://final-project-backend-463v.onrender.com
 - MongoDB Atlas (Base de datos)
 
 ## Contribución
