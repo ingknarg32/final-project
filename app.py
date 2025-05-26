@@ -11,7 +11,7 @@ from models import init_mongo, User, Article, mongo
 
 # Configuración inicial
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": ["*"], "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"], "allow_headers": ["Content-Type", "Authorization", "Accept"]}})
+CORS(app, resources={r"/api/*": {"origins": ["*"], "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"], "allow_headers": ["Content-Type", "Authorization", "Accept"], "expose_headers": ["Authorization"]}})
 load_dotenv()
 
 # Configuración de MongoDB
@@ -29,7 +29,13 @@ swaggerui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
     config={
-        'app_name': "Sistema de Gestión de Contenidos"
+        'app_name': "Sistema de Gestión de Contenidos",
+        'deepLinking': True,
+        'displayOperationId': True,
+        'supportedSubmitMethods': ['get', 'post', 'put', 'delete', 'options'],
+        'displayRequestDuration': True,
+        'docExpansion': 'list',
+        'persistAuthorization': True
     }
 )
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
