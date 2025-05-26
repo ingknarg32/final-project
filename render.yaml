@@ -2,7 +2,6 @@ services:
   - type: web
     name: final-project-backend
     env: python
-    runtime: python3.8
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
@@ -12,5 +11,3 @@ services:
         value: tu-clave-super-secreta-para-produccion-123
       - key: FLASK_ENV
         value: production
-      - key: PYTHON_VERSION
-        value: 3.8.12
