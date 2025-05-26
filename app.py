@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from flask_swagger_ui import get_swaggerui_blueprint
 import os
 import requests
+from bs4 import BeautifulSoup
 from models import init_mongo, User, Article, mongo
 
 # Configuración inicial

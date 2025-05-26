@@ -93,6 +93,31 @@
         }
       }
     },
+    "/scrape": {
+      "post": {
+        "tags": ["Web Scraping"],
+        "summary": "Extraer contenido de una URL",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "url": {"type": "string"}
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {"description": "Contenido extraído y procesado exitosamente"},
+          "400": {"description": "URL requerida"},
+          "401": {"description": "No autorizado"}
+        }
+      }
+    },
     "/recommendations": {
       "post": {
         "tags": ["Recomendaciones"],
