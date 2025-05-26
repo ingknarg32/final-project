@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: final-project-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: MONGODB_URI_PROD
+        value: mongodb+srv://mongodbprojectuser:kCu385OAEZpEjDws@cluster0.me7uz8w.mongodb.net/final_project?retryWrites=true&w=majority&appName=Cluster0
+      - key: JWT_SECRET_KEY_PROD
+        value: tu-clave-super-secreta-para-produccion-123
+      - key: FLASK_ENV
+        value: production
