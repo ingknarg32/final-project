@@ -2,15 +2,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_pymongo import PyMongo
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
-from datetime import datetime, timedelta
-from bs4 import BeautifulSoup
 import requests
-import nltk
-from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
-from nltk.corpus import stopwords
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from models import init_mongo, User, Article
@@ -45,16 +40,10 @@ nltk.download('punkt')
 nltk.download('wordnet')
 nltk.download('stopwords')
 
-# Lematizador
-lemmatizer = WordNetLemmatizer()
-stop_words = set(stopwords.words('spanish'))
-
 # Función para procesar texto
 def process_text(text):
-    tokens = word_tokenize(text.lower())
-    tokens = [lemmatizer.lemmatize(word) for word in tokens if word.isalnum()]
-    tokens = [word for word in tokens if word not in stop_words]
-    return ' '.join(tokens)
+    # Simplemente convertir a minúsculas y dividir por espacios
+    return ' '.join(text.lower().split())
 
 # Rutas de autenticación
 @app.route('/api/auth/register', methods=['POST'])
@@ -123,7 +112,7 @@ def add_article():
         'processed_content': processed_content,
         'created_at': datetime.utcnow()
     }
-    articles_collection.insert_one(article)
+    mongo.db.articles.insert_one(article)
     return jsonify({'message': 'Artículo agregado'}), 201
 
 @app.route('/api/scrape', methods=['POST'])
@@ -151,10 +140,36 @@ def scrape_website():
             'processed_content': processed_content,
             'created_at': datetime.utcnow()
         }
-        articles_collection.insert_one(article)
+        mongo.db.articles.insert_one(article)
         return jsonify({'message': 'Contenido extraído y procesado'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/recommendations', methods=['POST'])
+@jwt_required()
+def get_recommendations():
+    data = request.get_json()
+    user_preferences = data.get('user_preferences')
+    if not user_preferences:
+        return jsonify({'error': 'Preferencias del usuario requeridas'}), 400
+    
+    # Obtener todos los artículos
+    articles = list(mongo.db.articles.find())
+    
+    # Filtrar artículos que contengan palabras clave de las preferencias del usuario
+    recommended_articles = []
+    user_keywords = user_preferences.lower().split()
+    
+    for article in articles:
+        article_text = article['content'].lower()
+        if any(keyword in article_text for keyword in user_keywords):
+            recommended_articles.append({
+                'title': article['title'],
+                'content': article['content'],
+                'url': article['url']
+            })
+    
+    return jsonify(recommended_articles[:5]), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
