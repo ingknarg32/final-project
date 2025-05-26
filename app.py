@@ -166,13 +166,17 @@ def get_recommendations():
     user_keywords = user_preferences.lower().split()
     
     for article in articles:
-        article_text = article['content'].lower()
+        article_text = article.get('content', '').lower()
         if any(keyword in article_text for keyword in user_keywords):
-            recommended_articles.append({
-                'title': article['title'],
-                'content': article['content'],
-                'url': article['url']
-            })
+            article_data = {
+                'content': article.get('content', '')
+            }
+            # Agregar campos opcionales si existen
+            if 'title' in article:
+                article_data['title'] = article['title']
+            if 'url' in article:
+                article_data['url'] = article['url']
+            recommended_articles.append(article_data)
     
     return jsonify(recommended_articles[:5]), 200
 
