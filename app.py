@@ -1,0 +1,160 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_swagger_ui import get_swaggerui_blueprint
+from datetime import datetime, timedelta
+import os
+from dotenv import load_dotenv
+from bs4 import BeautifulSoup
+import requests
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from models import init_mongo, User, Article
+
+# Configuración inicial
+app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
+load_dotenv()
+
+# Configuración de MongoDB
+app.config['MONGO_URI'] = os.getenv('MONGODB_URI_PROD') if os.getenv('FLASK_ENV') == 'production' else os.getenv('MONGODB_URI', 'mongodb://localhost:27017/final_project')
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY_PROD') if os.getenv('FLASK_ENV') == 'production' else os.getenv('JWT_SECRET_KEY', 'your-secret-key')
+
+# Inicializar MongoDB y JWT
+init_mongo(app)
+jwt = JWTManager(app)
+
+# Configuración de Swagger UI
+SWAGGER_URL = '/api/docs'
+API_URL = '/api/swagger.json'
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "Sistema de Gestión de Contenidos"
+    }
+)
+app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+
+# Descargar recursos necesarios de NLTK
+nltk.download('punkt')
+nltk.download('wordnet')
+nltk.download('stopwords')
+
+# Lematizador
+lemmatizer = WordNetLemmatizer()
+stop_words = set(stopwords.words('spanish'))
+
+# Función para procesar texto
+def process_text(text):
+    tokens = word_tokenize(text.lower())
+    tokens = [lemmatizer.lemmatize(word) for word in tokens if word.isalnum()]
+    tokens = [word for word in tokens if word not in stop_words]
+    return ' '.join(tokens)
+
+# Rutas de autenticación
+@app.route('/api/auth/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    if not data or not all(key in data for key in ['username', 'password', 'email']):
+        return jsonify({'error': 'Datos incompletos'}), 400
+    
+    if User.find_by_username(data['username']):
+        return jsonify({'error': 'Usuario ya existe'}), 400
+    
+    User.create(data['username'], data['password'], data['email'])
+    return jsonify({'message': 'Usuario registrado'}), 201
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = User.find_by_username(data['username'])
+    if user and user['password'] == data['password']:  # En producción usar bcrypt
+        access_token = create_access_token(identity=user['username'], expires_delta=timedelta(hours=1))
+        return jsonify({'access_token': access_token}), 200
+    return jsonify({'error': 'Credenciales inválidas'}), 401
+
+# Ruta de prueba para verificar la conexión a MongoDB
+@app.route('/api/test', methods=['GET'])
+def test_db():
+    try:
+        # Intentar una operación simple para verificar la conexión
+        mongo.db.command('ping')
+        return jsonify({
+            'message': 'Conexión a MongoDB exitosa',
+            'collections': list(mongo.db.list_collection_names())
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Ruta de prueba para crear un usuario de prueba
+@app.route('/api/test/create-user', methods=['POST'])
+def create_test_user():
+    try:
+        # Crear un usuario de prueba
+        User.create(
+            username='test_user',
+            password='test_password',
+            email='test@example.com'
+        )
+        return jsonify({'message': 'Usuario de prueba creado exitosamente'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Rutas protegidas
+@app.route('/api/articles', methods=['GET'])
+@jwt_required()
+def get_articles():
+    articles = list(articles_collection.find({}, {'_id': 0}))
+    return jsonify(articles)
+
+@app.route('/api/articles', methods=['POST'])
+@jwt_required()
+def add_article():
+    data = request.get_json()
+    processed_content = process_text(data['content'])
+    article = {
+        'title': data['title'],
+        'content': data['content'],
+        'processed_content': processed_content,
+        'created_at': datetime.utcnow()
+    }
+    articles_collection.insert_one(article)
+    return jsonify({'message': 'Artículo agregado'}), 201
+
+@app.route('/api/scrape', methods=['POST'])
+@jwt_required()
+def scrape_website():
+    data = request.get_json()
+    url = data.get('url')
+    if not url:
+        return jsonify({'error': 'URL requerida'}), 400
+    
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Extraer contenido relevante
+        content = ''
+        for p in soup.find_all('p'):
+            content += p.get_text() + ' '
+        
+        # Procesar y guardar el contenido
+        processed_content = process_text(content)
+        article = {
+            'url': url,
+            'content': content,
+            'processed_content': processed_content,
+            'created_at': datetime.utcnow()
+        }
+        articles_collection.insert_one(article)
+        return jsonify({'message': 'Contenido extraído y procesado'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
